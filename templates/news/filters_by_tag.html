@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <form method="get">
+      {{ filter.form.as_p }}
+      <button type="submit">Найти!</button>
+  </form>
+
+	{% for n in filter.qs %}
+		Заголовок новости: {{ n.title }}<br>
+    Текст новости: {{ n.text }}<br>
+    <a href="http://127.0.0.1:8000/news/{{ n.pk }}">Читать</a>
+	{% endfor %}
+	
+{% endblock %}

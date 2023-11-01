@@ -1,5 +1,6 @@
 from django.views import generic
 
+from news.filters import NewsFilter
 from news.models import News
 
 
@@ -25,3 +26,16 @@ class StatisticListView(generic.ListView):
     context_object_name = 'news'
     paginate_by = 10
 
+
+class MyFilterView(generic.ListView):
+    """ Отображение страницы с фильтром """
+
+    model: object = News
+    template_name: str = 'news/filters_by_tag.html'
+    context_object_name: str = 'rooms'
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context: dict = super(MyFilterView, self).get_context_data(**kwargs)
+        context['filter'] = NewsFilter(self.request.GET,
+                                       queryset=self.get_queryset())
+        return context

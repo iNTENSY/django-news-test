@@ -5,13 +5,16 @@ from rest_framework.decorators import action
 
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from api.serializers import NewsSerializer
 from news.models import News
 
 
 class NewsViewSet(viewsets.ModelViewSet):
+    """
+    Стандартынй вьюсет для модели News включая пагинацию,
+    фильтр по тегу, фильтр по поиску названия.
+    """
     queryset = News.objects.all()
     serializer_class = NewsSerializer
     pagination_class = PageNumberPagination
@@ -21,6 +24,14 @@ class NewsViewSet(viewsets.ModelViewSet):
 
     @action(methods=['get', 'post'], url_path='news-action', detail=True)
     def news_action(self, *args, **kwargs):
+        """
+        Данный метод позволяет использовать путь .../news/<pk>/news-action
+        только по get- или post-запросу. Данный метод обрабатывает нажатие
+        лайка и дизлайка на странице новости.
+        По get-запросу возвращается список лайков и дизлайков.
+        По post-запросу возвращается сериализованный объект модели новости.
+        """
+
         if self.request.method == 'GET':
             return Response(self.get_likes())
         return Response(self.like_dislike_updater())
@@ -34,8 +45,7 @@ class NewsViewSet(viewsets.ModelViewSet):
 
     def like_dislike_updater(self):
         action = self.request.POST.get('action')
-        news_pk = self.request.POST.get('news_pk')
-        news = News.objects.get(pk=news_pk)
+        news = self.get_object()
 
         match action:
             case 'like':
@@ -59,4 +69,3 @@ class NewsViewSet(viewsets.ModelViewSet):
         else:
             news.dislike.remove(self.request.user)
         return news
-
