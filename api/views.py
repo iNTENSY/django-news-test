@@ -1,11 +1,9 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
-from rest_framework import filters, mixins
+from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
+from rest_framework.decorators import action
 
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -21,9 +19,44 @@ class NewsViewSet(viewsets.ModelViewSet):
     filterset_fields = ('tag__name',)
     search_fields = ('title',)
 
+    @action(methods=['get', 'post'], url_path='news-action', detail=True)
+    def news_action(self, *args, **kwargs):
+        if self.request.method == 'GET':
+            return Response(self.get_likes())
+        return Response(self.like_dislike_updater())
 
-class UpdateLikesDislikes(APIView):
-    def post(self, *args, **kwargs):
-        action = self.request.POST.get('action')[0]
-        print(self.request.POST)
-        return JsonResponse({'status': 'okkk'})
+    def get_likes(self):
+        news = self.get_object()
+        likes_count = news.like.all().count()
+        dislikes_count = news.dislike.all().count()
+        return {'like_count': likes_count,
+                'dislike_count': dislikes_count}
+
+    def like_dislike_updater(self):
+        action = self.request.POST.get('action')
+        news_pk = self.request.POST.get('news_pk')
+        news = News.objects.get(pk=news_pk)
+
+        match action:
+            case 'like':
+                self.like(news)
+            case 'dislike':
+                self.dislike(news)
+        news.save()
+        serializer = self.get_serializer(news)
+        return serializer.data
+
+    def like(self, news):
+        if self.request.user not in news.like.all():
+            news.like.add(self.request.user)
+        else:
+            news.like.remove(self.request.user)
+        return news
+
+    def dislike(self, news):
+        if self.request.user not in news.dislike.all():
+            news.dislike.add(self.request.user)
+        else:
+            news.dislike.remove(self.request.user)
+        return news
+

@@ -46,7 +46,8 @@ class News(models.Model):
         verbose_name='Изображение',
         null=True,
         blank=True,
-        default=None
+        default=None,
+        upload_to='news/images'
     )
     like = models.ManyToManyField(
         to=User,

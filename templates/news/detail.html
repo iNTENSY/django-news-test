@@ -2,12 +2,19 @@
 {% load static %}
 
 {% block content %}
-  {{ post.tag }}<br>
-  {{ post.title }}<br>
-  {{ post.text }}<br>
+  Теги: {{ post.tag.all|join:', ' }}<br>
+  Заголовок новости: {{ post.title }}<br>
+  Текст новости: {{ post.text }}<br>
   {% if post.image %}
-    {{ post.image.url }}
+    <img src="{{ post.image.url }}" alt="Альтернативный текст"  width="150" height="150" style="object-fit: contain">
   {% endif %}
+  <p>
+  Лайки: <div id="like_count">{{ post.like.all.count }}</div>
+  </p>
+
+  <p>
+  Дизлайки: <div id="dislike_count">{{ post.dislike.all.count }}</div>
+  </p>
   <button id="like">LIKE</button>
   <button id="dislike">DISLIKE</button>
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -15,7 +22,7 @@
     $(document).ready(function () {
       $('#like').click(function (){
           $.ajax({
-              url: "{% url 'api:like' %}",
+              url: "http://127.0.0.1:8000/api/v1/news/" + "{{ post.pk }}" + '/news-action/',
               type: "POST",
               data: {
                   csrfmiddlewaretoken: '{{ csrf_token }}',
@@ -24,10 +31,48 @@
               },
               dataType: 'json',
               success: function(response) {
-                  alert(response.message)
+                  console.log(response.message)
               }
           })
       })
     })
+  </script>
+  <script>
+    $(document).ready(function () {
+      $('#dislike').click(function (){
+          $.ajax({
+              url: "http://127.0.0.1:8000/api/v1/news/" + "{{ post.pk }}" + '/news-action/',
+              type: "POST",
+              data: {
+                  csrfmiddlewaretoken: '{{ csrf_token }}',
+                  news_pk: '{{ post.pk }}',
+                  action: 'dislike'
+              },
+              dataType: 'json',
+              success: function(response) {
+                  console.log(response.message)
+              }
+          })
+      })
+    })
+  </script>
+  <script>
+  function sendRequest() {
+      fetch("http://127.0.0.1:8000/api/v1/news/" + '{{ post.pk }}' + '/news-action/')
+          .then(response => response.json())
+          .then(data => {
+              const like_item = document.getElementById('like_count')
+              const dislike_item = document.getElementById('dislike_count')
+              console.log(data.count);
+              like_item.innerText = data.like_count
+              dislike_item.innerText = data.dislike_count
+          });
+  }
+  const interval = setInterval(sendRequest, 10000);
+
+  // Очистка интервала при закрытии окна или завершении работы скрипта
+  window.addEventListener("beforeunload", () => {
+    clearInterval(interval);
+  });
   </script>
 {% endblock %}
