@@ -2,7 +2,7 @@
 
 {% block content %}
   {% for obj in news %}
-    <a href="{{ obj.get_absolute_url }}">{{ obj.title }}</a> | Количество посещений: {{ obj.visit_count }}<br>
+    Новость: <a href="{{ obj.get_absolute_url }}">{{ obj.title }}</a> | Количество посещений: {{ obj.visit_count }}<br>
   {% endfor %}
   <div class="pagination">
         <span class="step-links">

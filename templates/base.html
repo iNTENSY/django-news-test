@@ -7,8 +7,11 @@
   <title>News</title>
 </head>
 <body>
-  <a href="{% url 'news:index' %}">Первая страница</a>
-  <a href="{% url 'news:statistic' %}">Статистика</a><br>
+  <p>
+    <a href="{% url 'news:index' %}">Первая страница</a>
+    <a href="{% url 'news:statistic' %}">Статистика</a>
+    <a href="{% url 'news:filter' %}">Фильтрация новостей</a><br>
+  </p>
   {% block content %}
   {% endblock %}
 </body>
